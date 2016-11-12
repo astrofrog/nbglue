@@ -131,6 +131,37 @@ class CLIApplication(Application):
             viewer.axes.figure.savefig(filename, dpi=150)
             display(Image(filename=filename, width=500, height=500))
 
+    def ishow(self, *viewers):
+
+        splitter = QtWidgets.QSplitter()
+        splitter.setOrientation(Qt.Vertical)
+        for viewer in viewers:
+            splitter.addWidget(viewer)
+
+        splitter.show()
+        splitter.raise_()
+
+        class ViewerCollection(object):
+
+            def __init__(self, viewers, splitter):
+                self.viewers = viewers
+                self.splitter = splitter
+
+            def finalize(self):
+
+                tmpdir = tempfile.mkdtemp()
+                filename = os.path.join(tmpdir, 'tmp.png')
+                for viewer in self.viewers:
+                    viewer.axes.figure.savefig(filename, dpi=150)
+                    display(Image(filename=filename, width=500, height=500))
+
+        collection = ViewerCollection(viewers, splitter)
+
+        return collection
+
+    def add_selection(self, label, criterion):
+        return self.data_collection.new_subset_group(label, criterion)
+
 
 def start_nbglue():
     app = get_qapp()
