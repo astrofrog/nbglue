@@ -130,6 +130,7 @@ class CLIApplication(Application):
         for viewer in viewers:
             viewer.axes.figure.savefig(filename, dpi=150)
             display(Image(filename=filename, width=500, height=500))
+            viewer.close()
 
     def ishow(self, *viewers):
 
