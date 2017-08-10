@@ -9,9 +9,16 @@ from qtpy.QtCore import Qt
 from glue.utils.qt import get_qapp
 from glue.core.data_factories import load_data
 from glue.core.application_base import Application
-from glue.viewers.scatter.qt.viewer_widget import ScatterWidget
-from glue.viewers.histogram.qt.viewer_widget import HistogramWidget
-# from glue_vispy_viewers.scatter.scatter_viewer import VispyScatterViewer
+
+try:
+    from glue.viewers.scatter.qt.viewer_widget import ScatterWidget
+    from glue.viewers.histogram.qt.viewer_widget import HistogramWidget
+    GLUE_LT_011 = True
+except:
+    from glue.viewers.scatter.qt.data_viewer import ScatterViewer
+    from glue.viewers.histogram.qt.data_viewer import HistogramViewer
+    GLUE_LT_011 = False
+
 from glue.app.qt.edit_subset_mode_toolbar import EditSubsetModeToolBar
 from glue.app.qt.layer_tree_widget import LayerTreeWidget
 
@@ -64,14 +71,23 @@ class CLIApplication(Application):
         return c
 
     def scatter(self, data, x, y):
-        scatter = self.new_data_viewer(ScatterWidget, data)
-        scatter.xatt = data.id[x]
-        scatter.yatt = data.id[y]
+        if GLUE_LT_011:
+            scatter = self.new_data_viewer(ScatterWidget, data)
+            scatter.xatt = data.id[x]
+            scatter.yatt = data.id[y]
+        else:
+            scatter = self.new_data_viewer(ScatterViewer, data)
+            scatter.state.x_att = data.id[x]
+            scatter.state.y_att = data.id[y]
         return scatter
 
     def histogram(self, data, x):
-        histogram = self.new_data_viewer(HistogramWidget, data)
-        histogram.component = data.id[x]
+        if GLUE_LT_011:
+            histogram = self.new_data_viewer(HistogramWidget, data)
+            histogram.component = data.id[x]
+        else:
+            histogram = self.new_data_viewer(HistogramViewer, data)
+            histogram.x_att = data.id[x]
         return histogram
 
     def load_data(self, path):
@@ -164,7 +180,11 @@ class CLIApplication(Application):
         return self.data_collection.new_subset_group(label, criterion)
 
 
+app = None
+
+
 def start_nbglue():
+    global app
     app = get_qapp()
     return CLIApplication()
 
